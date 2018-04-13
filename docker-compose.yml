@@ -1,0 +1,40 @@
+version: '2'
+services:
+    app:
+        build:
+            context: ./
+            dockerfile: ./docker/app/Dockerfile
+            args:
+                - INSTALL_XDEBUG=true
+                - INSTALL_INTL=true
+                - INSTALL_PHPREDIS=true
+                - INSTALL_BCMATH=true
+        volumes:
+            - ".:/var/www"
+        links:
+            - "mysql"
+            - "redis"
+        environment:
+            - XDEBUG_CONFIG=remote_host=192.168.1.10 remote_port=9000 remote_connect_back=0 idekey=PHPSTORM
+            - PHP_IDE_CONFIG=serverName=laravel-docker-7.1
+
+    web:
+        build:
+            context: ./
+            dockerfile: ./docker/web/Dockerfile
+        volumes_from:
+            - app
+        ports:
+            - "8000:80"
+
+    mysql:
+        image: mysql:5.7
+        environment:
+            MYSQL_ROOT_PASSWORD: secret
+            MYSQL_DATABASE: laravel
+            MYSQL_USER: docker
+            MYSQL_PASSWORD: secret
+        ports:
+            - "33060:3306"
+    redis:
+        image: redis:alpine
